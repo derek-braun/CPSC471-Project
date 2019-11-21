@@ -1,2 +1,5 @@
 # CPSC471-Project
-commit test
+Database Term Project for CPSC 471
+Derek Braun
+Touseef Hossain
+Ryan Ward

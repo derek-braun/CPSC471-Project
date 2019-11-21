@@ -2,6 +2,8 @@ var express = require('express');
 var mysql = require('mysql');
 var app = express();
 
+app.set("view engine", "ejs");
+
 var connection = mysql.createConnection({
     host    : 'localhost',
     user    : 'dbraun',
@@ -10,12 +12,17 @@ var connection = mysql.createConnection({
 });
 
 app.get("/", function (req, res){
-    var q = "SELECT * FROM users";
-    connection.query(q, function(err, results){
-        if(err) throw err;
-        console.log(results);
-    })
-    res.send("You've reached the login page");
+    //redirect to login
+    res.redirect("/login");
+});
+
+app.get("/login", function (req, res){
+    // var q = "SELECT * FROM users";
+    // connection.query(q, function(err, results){
+    //     if(err) throw err;
+    //     console.log(results);
+    // })
+    res.render("login");
 });
 
 // app.use(function(req, res, next) {
