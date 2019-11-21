@@ -6,7 +6,7 @@ app.set("view engine", "ejs");
 
 var connection = mysql.createConnection({
     host    : 'localhost',
-    user    : 'dbraun',
+    user    : 'username',
     password: 'password',
     database: 'cpsc471project'
 });
