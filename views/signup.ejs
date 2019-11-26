@@ -1,20 +1,42 @@
-<link rel="stylesheet" href="/styles/...">
+<html>
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<h1>Activity App</h1>
-<h2>Signup</h2>
-<form method="POST" action='/signup'>
-    <p>Username</p>
-    <input type="text" class="form" placeholder="Choose a Username"><br>
-    <p>Password</p>
-    <input type="password" class="form"><br>
-    <p>Date of Birth</p>
-    <input type="date" class="form" name="birthday"><br>
-    <p>Faculty</p>
-    <select>
-        <option value="engineering">Engineering</option>
-        <option value="science">Science</option>
-        <option value="arts">Arts</option>
-        <option value="kines">Kinesiology</option>
-        <option value="business">Business</option>
-    </select>
-</form>
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    </head>
+    <body>
+        <div class="col-xs-4">
+            <h1>Activity App</h1>
+            <h2>Signup</h2>
+            <form method="POST" action='/signup'>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" class="form-control" id="username" placeholder="Choose a Username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="text" name="password" class="form-control" id="password" placeholder="Enter Your Password">
+                </div>
+                <div class="form-group">
+                    <label for="birthday">Date of Birth</label>
+                    <input type="date" name="birthday" class="form-control" id="birthday"">
+                </div>
+                <div class="form-group">
+                    <label for"faculty">Faculty</label>
+                      <select class="form-control" id="faculty">
+                        <option value="engineering">Engineering</option>
+                        <option value="science">Science</option>
+                        <option value="arts">Arts</option>
+                        <option value="kines">Kinesiology</option>
+                        <option value="business">Business</option>
+                      </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Signup</button>
+            </form>
+            <a href="signup">Already a User? Login</a>
+        </div>
+    </body>
+</html>

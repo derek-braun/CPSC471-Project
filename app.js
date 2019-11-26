@@ -6,12 +6,18 @@ var app = express();
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 
-//Establish database connection on server side
+//Database connection credentials
 var connection = mysql.createConnection({
-    host    : 'localhost',
-    user    : 'username',
-    password: 'password',
-    database: 'cpsc471project'
+    host : 'localhost',
+    user : 'root',
+    password : 'password',
+    database : 'termproject471'
+});
+
+//Establish database connection on server side
+connection.connect((err) => {
+    if (err) throw err;
+    console.log('Connected!');
 });
 
 //Redirect main page to login
@@ -25,14 +31,30 @@ app.get("/signup", function (req, res){
 })
 
 app.get("/login", function (req, res){
-    // var q = "SELECT * FROM users";
-    // connection.query(q, function(err, results){
-    //     if(err) throw err;
-    //     console.log(results);
-    // })
-    var bar = "Hello World";
-    res.render("login", {foo: bar});
+    res.render("login");
 });
+
+app.get("/search", function(req, res){
+    res.render("search");
+})
+
+app.post("/signup", function(req, res){
+    var i = "INSERT INTO Users VALUES(?, ?);"
+    connection.query(i, [req.body.username, req.body.password], function(err, results){
+        if(err) res.redirect("/signup");
+        else res.redirect("/login");
+    })
+})
+
+app.post("/login", function (req, res){
+    var q = "SELECT * FROM Users WHERE Uname = ? AND Pass = ?;"
+    connection.query(q, [req.body.username, req.body.password], function(err, results){
+        if(err) console.log("An error has occurred");
+        if(results.length == 0) return res.redirect("/login");
+        else if(results.length == 1) return res.redirect("/search");
+        console.log(results);
+    })
+})
 
 // Prevent internal page access without login
 // app.use(function(req, res, next) {
