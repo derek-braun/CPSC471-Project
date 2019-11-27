@@ -16,7 +16,37 @@
       <!-- <li><a href="#">Page 2</a></li> -->
       <!-- <li><a href="#">Page 3</a></li> -->
     </ul>
+    <div class="nav pull-right" style="margin-top: 15px; margin-right: 50px;">
+      <a href="login">Logout</a>
+    </div>
   </div>
 </nav>
 
 <h1>Profile</h1>
+<div class="col-xs-4">
+  <form method="POST" action='/login'>
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" name="username" class="form-control" id="username" value="Username" disabled>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="text" name="password" class="form-control" id="password" value="Password">
+    </div>
+    <div class="form-group">
+      <label for="birthday">Date of Birth</label>
+      <input type="date" name="birthday" class="form-control" id="birthday" value="1999-04-27">
+    </div>
+    <div class="form-group">
+      <label for"faculty">Faculty</label>
+      <select class="form-control" id="faculty">
+        <option value="engineering">Engineering</option>
+        <option value="science">Science</option>
+        <option value="arts">Arts</option>
+        <option value="kines">Kinesiology</option>
+        <option value="business">Business</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Update</button>
+  </form>
+</div>

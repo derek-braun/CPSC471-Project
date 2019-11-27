@@ -23,7 +23,7 @@ connection.connect((err) => {
 
 //use sessions for tracking logins
 app.use(session({
-    secret: 'work hard',
+    secret: 'The big secret',
     resave: true,
     saveUninitialized: false
 }));
@@ -80,6 +80,18 @@ app.get("/search", function(req, res){
 
 app.get("/profile", function(req, res){
     res.render("profile");
+})
+
+app.get("/logout", function(req, res){
+    if (req.session) {
+        req.session.destroy(function(err) {
+            if(err) {
+                return next(err);
+            } else {
+                return res.redirect('/');
+            }
+        });
+    }
 })
 
 app.get("/other", function (req, res){
