@@ -1,0 +1,59 @@
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="search">Activity App</a>
+        </div>
+        <ul class="nav navbar-nav">
+            <li><a href="search">Home</a></li>
+            <li><a href="profile">Profile</a></li>
+            <!-- <li><a href="#">Page 2</a></li> -->
+            <!-- <li><a href="#">Page 3</a></li> -->
+        </ul>
+        <div class="nav pull-right" style="margin-top: 15px; margin-right: 50px;">
+            <a href="login">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<h1 style="margin-left:15px;">New Activity</h1><br>
+<div class="col-xs-4" style="background-color:#EEEEEE; border-radius:10px; margin-left:10px;">
+    <h3>User Info</h3>
+    <form method="POST" action='/createActivity'>
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" name="title" class="form-control" id="title" placeholder="Enter an activity title">
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea class="form-control" name="description" id="description" rows="3" placeholder="Enter a brief description for your activity"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="starttime">Start Time</label>
+            <input type="date" class="form-control" name="startdate" id="starttime"></input>
+            <input type="time" class="form-control" name="starttime" id="starttime"></input>
+        </div>
+        <div class="form-group">
+            <label for="duration">Duration</label>
+            <input type="time" class="form-control" name="duration" id="duration"></input>
+        </div>
+        <div class="form-group">
+            <label for="interest">Topic</label>
+            <input type="text" name="interest" class="form-control" id="interest" placeholder="Enter a topic for the activity">
+        </div>
+        <div class="form-group">
+            <label for="group">Group</label>
+            <select class="form-control" id="group">
+                <option value="none">None</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a href="search" class="btn btn-danger" style="margin-left:10px">Cancel</a>
+    </form>
+</div>

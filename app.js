@@ -36,34 +36,39 @@ app.get("/", function (req, res){
 
 app.get("/signup", function (req, res){
     res.render("signup");
-})
+});
 
 app.get("/login", function (req, res){
     res.render("login");
 });
 
 app.post("/signup", function(req, res){
-    var i = "INSERT INTO Users VALUES(?, ?);"
-    connection.query(i, [req.body.username, req.body.password], function(err, results){
-        if(err) res.redirect("/signup");
-        else res.redirect("/login");
-    })
-})
+    if(req.body.username != "" && req.body.password != ""){
+        var i = "INSERT INTO Users VALUES(?, ?);"
+        connection.query(i, [req.body.username, req.body.password], function(err, results){
+            if(err) return res.redirect("/signup");
+            else return res.redirect("/login");
+        })
+    }
+    else{
+        return res.redirect("/signup");
+    }
+});
 
 app.post("/login", function (req, res){
-    var q = "SELECT * FROM Users WHERE Uname = ? AND Pass = ?;"
+    var q = "SELECT * FROM USER WHERE Username = ? AND Password = ?;"
     connection.query(q, [req.body.username, req.body.password], function(err, results){
         if(err) console.log("An error has occurred");
         if(results.length == 0){
             return res.redirect("/login");
         }
         else if(results.length == 1) {
-            req.session.userId = results[0].Uname;
+            req.session.userId = results[0].Username;
             return res.redirect("/search");
         }
         console.log(results);
     })
-})
+});
 
 // Prevent internal page access without login
 app.use(function(req, res, next) {
@@ -76,11 +81,40 @@ app.use(function(req, res, next) {
 
 app.get("/search", function(req, res){
     res.render("search");
-})
+});
 
 app.get("/profile", function(req, res){
-    res.render("profile");
-})
+    var username;
+    var password;
+    var birthday;
+    var topics = new Array();
+    var experience = new Array();
+    var q = "SELECT * FROM USER WHERE Username = ?";
+    connection.query(q, [req.session.userId], function(err, results){
+        if(err) console.log("An error has occurred");
+        if(results.length == 1) {
+            username = results[0].Username;
+            password = results[0].Password;
+            birthday = results[0].Birthdate;
+        }
+    });
+    q = "SELECT * FROM USER_INTEREST WHERE Username = ?";
+    connection.query(q, [req.session.userId], function(err, results){
+        if(err) console.log("An error has occured");
+        for(var i = 0; i < results.length; i++) {
+            topics[i] = results[i].InterestName;
+            experience[i] = results[i].Experience;
+        }
+    });
+
+    setTimeout(function() {
+        return res.render("profile", {username: username, password: password, birthday: birthday, topics: topics, experience: experience});
+    }, 50);
+});
+
+app.get("/activity", function(req, res){
+    res.render("activity");
+});
 
 app.get("/logout", function(req, res){
     if (req.session) {
@@ -92,10 +126,6 @@ app.get("/logout", function(req, res){
             }
         });
     }
-})
-
-app.get("/other", function (req, res){
-    res.send("You've reached a different page");
 });
 
 //Create server, wait for requests

@@ -22,23 +22,24 @@
   </div>
 </nav>
 
-<h1>Profile</h1>
-<div class="col-xs-4">
-  <form method="POST" action='/login'>
+<h1 style="margin-left:15px;">Your Profile</h1><br>
+<div class="col-xs-4" style="background-color:#EEEEEE; border-radius:10px; margin-left:10px;">
+  <h3>User Info</h3>
+  <form method="POST" action='/updateProfile'>
     <div class="form-group">
       <label for="username">Username</label>
-      <input type="text" name="username" class="form-control" id="username" value="Username" disabled>
+      <input type="text" name="username" class="form-control" id="username" value="<%=username%>" disabled>
     </div>
     <div class="form-group">
       <label for="password">Password</label>
-      <input type="text" name="password" class="form-control" id="password" value="Password">
+      <input type="text" name="password" class="form-control" id="password" value="<%=password%>">
     </div>
     <div class="form-group">
       <label for="birthday">Date of Birth</label>
-      <input type="date" name="birthday" class="form-control" id="birthday" value="1999-04-27">
+      <input type="date" name="birthday" class="form-control" id="birthday" value="<%=birthday%>">
     </div>
     <div class="form-group">
-      <label for"faculty">Faculty</label>
+      <label for="faculty">Faculty</label>
       <select class="form-control" id="faculty">
         <option value="engineering">Engineering</option>
         <option value="science">Science</option>
@@ -48,5 +49,15 @@
       </select>
     </div>
     <button type="submit" class="btn btn-primary">Update</button>
+  </form>
+</div>
+<div class="col-xs-4" style="background-color:#EEEEEE; border-radius:10px; margin-left:15px">
+  <h3>Interests</h3>
+  <form method="POST" action='/updateProfile'>
+    <ul>
+      <% for(var i = 0; i < topics.length; i++){ %>
+        <li><pre><%=topics[i]%> <a href="#">Remove</a></pre></li>
+      <% } %>
+    </ul>
   </form>
 </div>
