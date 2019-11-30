@@ -44,14 +44,17 @@ app.get("/login", function (req, res){
 
 app.post("/signup", function(req, res){
     if(req.body.username != "" && req.body.password != ""){
-        var i = "INSERT INTO Users VALUES(?, ?);"
-        connection.query(i, [req.body.username, req.body.password], function(err, results){
-            if(err) return res.redirect("/signup");
-            else return res.redirect("/login");
-        })
-    }
-    else{
-        return res.redirect("/signup");
+        var q = "INSERT INTO USER VALUES(?, ?, ?, ?);"
+        connection.query(q, [req.body.username, req.body.password, "client", req.body.birthday], function(err, results){
+            if(err) console.log("An error has occured");
+        });
+        q = "INSERT INTO FACULTY_ASSIGNMENT VALUES(?, ?);"
+        connection.query(q, [req.body.faculty, req.body.username], function(err, results){
+            if(err) console.log("An error has occured");
+        });
+        setTimeout(function() {
+            return res.redirect("profile");
+        }, 50);
     }
 });
 
@@ -84,36 +87,49 @@ app.get("/search", function(req, res){
 });
 
 app.get("/profile", function(req, res){
+    //TODO fix no interests issue
     var username;
     var password;
     var birthday;
     var topics = new Array();
     var experience = new Array();
-    var q = "SELECT * FROM USER WHERE Username = ?";
+    var faculty;
+    var q = "SELECT I.InterestName, I.Experience, U.Username, U.Password, U.Birthdate, F.FacultyName " +
+        "FROM USER AS U, USER_INTEREST AS I, FACULTY_ASSIGNMENT AS F " +
+        "WHERE U.Username = I.Username AND U.Username = F.Username AND U.Username = ?";
     connection.query(q, [req.session.userId], function(err, results){
         if(err) console.log("An error has occurred");
-        if(results.length == 1) {
+        if(results.length > 0) {
             username = results[0].Username;
             password = results[0].Password;
             birthday = results[0].Birthdate;
+            faculty = results[0].FacultyName;
+            for(var i = 0; i < results.length; i++) {
+                topics[i] = results[i].InterestName;
+                experience[i] = results[i].Experience;
+            }
+            return res.render("profile", {username: username, password: password, birthday: birthday,
+                topics: topics, experience: experience, faculty: faculty});
         }
     });
-    q = "SELECT * FROM USER_INTEREST WHERE Username = ?";
-    connection.query(q, [req.session.userId], function(err, results){
-        if(err) console.log("An error has occured");
-        for(var i = 0; i < results.length; i++) {
-            topics[i] = results[i].InterestName;
-            experience[i] = results[i].Experience;
-        }
-    });
-
-    setTimeout(function() {
-        return res.render("profile", {username: username, password: password, birthday: birthday, topics: topics, experience: experience});
-    }, 50);
 });
 
 app.get("/activity", function(req, res){
     res.render("activity");
+});
+
+app.post("/updateProfile", function(req, res){
+    var q = "UPDATE USER SET Password = ?, Birthdate = ? WHERE Username = ?;"
+    connection.query(q, [req.body.password, req.body.birthday, req.session.userId], function(err, results){
+        if(err) console.log("An error has occured");
+    });
+    q = "UPDATE faculty_assignment SET FacultyName = ? WHERE Username = ?;"
+    connection.query(q, [req.body.faculty, req.session.userId], function(err, results){
+        if(err) console.log("An error has occured");
+    });
+    setTimeout(function() {
+        return res.redirect("profile");
+    }, 50);
 });
 
 app.get("/logout", function(req, res){
