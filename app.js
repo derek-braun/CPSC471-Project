@@ -118,6 +118,23 @@ app.get("/activity", function(req, res){
     res.render("activity");
 });
 
+app.post("/createActivity", function(req, res) {
+    if(req.body.interest == ""){
+        req.body.interest = null;
+    }
+    //console.log([req.body.title, req.body.startTime, req.session.userId, req.body.duration, req.body.group, req.body.interest]);
+    var q = "INSERT INTO activity VALUES(null, ?, ?, ?, ?, ?, true, ?, ?, null)";
+    //var q = "INSERT INTO ACTIVITY VALUES(null, 'Title', 'time', 'dbraun', 'desc', 'duration', true, 'None', 'Squash', null)"
+    connection.query(q, [req.body.title, req.body.startTime, req.session.userId, req.body.description, req.body.duration, req.body.group, req.body.interest], function(err, results){
+       if(err) throw err;
+       res.redirect("search");
+    });
+    // connection.query(q, function(err, results){
+    //     if(err) throw err;
+    //     res.redirect("search");
+    // })
+});
+
 app.post("/updateProfile", function(req, res){
     var q = "UPDATE USER SET Password = ?, Birthdate = ? WHERE Username = ?;"
     connection.query(q, [req.body.password, req.body.birthday, req.session.userId], function(err, results){
