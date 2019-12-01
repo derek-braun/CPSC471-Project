@@ -132,6 +132,28 @@ app.post("/updateProfile", function(req, res){
     }, 50);
 });
 
+app.post("/addInterest", function(req, res){
+    var q = "INSERT INTO INTEREST_TOPIC VALUES(?, 1, null)";
+    connection.query(q, [req.body.addInterest], function(err, results){
+        if(err) console.log("Interest Already Exists");
+    });
+    q = "INSERT INTO USER_INTEREST VALUES(?, ?, 1)";
+    connection.query(q, [req.body.addInterest, req.session.userId], function(err, results){
+        if(err) console.log("An error has occured");
+    })
+    setTimeout(function() {
+        return res.redirect("profile");
+    }, 50);
+});
+
+app.post("/removeInterest/:id", function(req, res){
+    var q = "DELETE FROM USER_INTEREST WHERE InterestName = ? AND Username = ?;"
+    connection.query(q, [req.params.id, req.session.userId], function(err, results){
+       if(err) console.log("An error has occured");
+       return res.redirect("/profile");
+    });
+});
+
 app.get("/logout", function(req, res){
     if (req.session) {
         req.session.destroy(function(err) {

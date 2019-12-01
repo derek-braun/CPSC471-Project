@@ -54,11 +54,21 @@
 </div>
 <div class="col-xs-4" style="background-color:#EEEEEE; border-radius:10px; margin-left:15px">
   <h3>Interests</h3>
-  <form method="POST" action='/updateProfile'>
-    <ul>
-      <% for(var i = 0; i < topics.length; i++){ %>
-        <li><pre><%=topics[i]%> <a href="#">Remove</a></pre></li>
-      <% } %>
-    </ul>
-  </form>
+  <ul>
+    <li>
+      <form method="POST" action="/addInterest" class="input-group">
+        <div class="input-group">
+          <input type="text" class="form-control" name="addInterest" id="addInterest">
+          <span class="input-group-btn">
+          <button class="btn btn-primary" type="submit">Add</button>
+          </span>
+        </div>
+      </form>
+    </li>
+    <% for(var i = 0; i < topics.length; i++){ %>
+    <form method="POST" action="/removeInterest/<%=topics[i]%>">
+      <li><pre><%=topics[i]%> <button type="submit" class="btn" id="hello">Remove</button></pre></li>
+    </form>
+    <% } %>
+  </ul>
 </div>
