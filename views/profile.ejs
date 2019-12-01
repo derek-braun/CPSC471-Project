@@ -23,7 +23,6 @@
   </div>
 </nav>
 
-<h1 style="margin-left:15px;">Your Profile</h1><br>
 <div class="col-xs-4" style="background-color:#EEEEEE; border-radius:10px; margin-left:10px;">
   <h3>User Info</h3>
   <form method="POST" action='/updateProfile'>
@@ -67,7 +66,11 @@
     </li>
     <% for(var i = 0; i < topics.length; i++){ %>
     <form method="POST" action="/removeInterest/<%=topics[i]%>">
-      <li><pre><%=topics[i]%> <button type="submit" class="btn" id="hello">Remove</button></pre></li>
+      <%if(topics[i] == "University"){%>
+      <li><pre><%=topics[i]%></pre></li>
+      <%}else{%>
+      <li><pre><%=topics[i]%> <button type="submit" class="btn" id="interest">Remove</button></pre></li>
+      <%}%>
     </form>
     <% } %>
   </ul>

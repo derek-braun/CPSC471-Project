@@ -5,6 +5,24 @@
 <!-- Bootstrap CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 
+<style>
+    .thumbnail {
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.5);
+        transition: 0.3s;
+        min-width: 40%;
+        border-radius: 5px;
+    }
+
+    .thumbnail-description {
+        min-height: 40px;
+    }
+
+    .thumbnail:hover {
+        cursor: pointer;
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 1);
+    }
+</style>
+
 <nav class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -23,11 +41,45 @@
   </div>
 </nav>
 
-<a href="activity"><button class="btn btn-primary pull-right" style="margin-right:60px; margin-top:20px;">New Activity</button></a>
-<div class="input-group col-xs-4" style="margin-left:40px; margin-top:40px;">
-    <input type="search" class="form-control">
-        <span class="input-group-btn">
-        <button class="btn btn-primary" type="button"><span class="glyphicon glyphicon-search" aria-hidden="true">
-        </span> Search</button>
-    </span>
+<div>
+    <a href="activity"><button class="btn btn-primary pull-right" style="margin-right:60px;">New Activity</button></a>
+    <form method="POST" action="/searchActivities">
+        <div class="input-group col-xs-4" style="margin-left:40px; margin-top:40px;">
+            <input type="search" class="form-control">
+                <span class="input-group-btn">
+                <button class="btn btn-primary" type="button"><span class="glyphicon glyphicon-search" aria-hidden="true">
+                </span> Search</button>
+            </span>
+        </div>
+    </form>
+</div>
+
+<div class="container" style="margin-top: 60px;">
+    <%var count = 0;%>
+    <%for(var i = 0; i < Math.ceil(activityData.length / 3); i++){ %>
+    <div class="row">
+        <%var j = 0;%>
+        <%var max = count;%>
+        <%while(j < 3 && j < activityData.length - max){j++;%>
+        <div class="col-xl-1">
+            <div class="col-sm-4">
+                <div class="thumbnail">
+                    <div class="caption text-center" onclick="#">
+                        <h4 id="thumbnail-label"><a href="https://flow.microsoft.com/en-us/connectors/shared_slack/slack/" target="_blank"><%=activityData[count].Title%></a></h4>
+                        <p><i class="glyphicon glyphicon-user light-red lighter bigger-120"></i><%=activityData[count].Username%></p>
+                        <div class="thumbnail-description smaller"><%=activityData[count].Description%></div>
+                    </div>
+                    <div class="caption card-footer text-center">
+                        <ul class="list-inline">
+                            <li><i class="people lighter"></i>7 Participants</li>
+                            <li></li>
+                            <li><i class="lighter"></i>Time: <%=activityData[count].StartTime%></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%count++; }%>
+    </div>
+    <%}%>
 </div>

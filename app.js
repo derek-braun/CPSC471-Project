@@ -52,6 +52,10 @@ app.post("/signup", function(req, res){
         connection.query(q, [req.body.faculty, req.body.username], function(err, results){
             if(err) console.log("An error has occured");
         });
+        q = "INSERT INTO USER_INTEREST VALUES(?, ?, ?);"
+        connection.query(q, ["University", req.body.username, 1], function(err, results){
+            if(err) console.log("An error has occured");
+        });
         setTimeout(function() {
             return res.redirect("profile");
         }, 50);
@@ -83,7 +87,11 @@ app.use(function(req, res, next) {
 });
 
 app.get("/search", function(req, res){
-    res.render("search");
+    var q = "SELECT * FROM ACTIVITY;"
+    connection.query(q, function(err, results){
+       if(err) console.log("An error has occured");
+       res.render("search", {activityData: results});
+    });
 });
 
 app.get("/profile", function(req, res){
@@ -120,19 +128,13 @@ app.get("/activity", function(req, res){
 
 app.post("/createActivity", function(req, res) {
     if(req.body.interest == ""){
-        req.body.interest = null;
+        req.body.interest = "None";
     }
-    //console.log([req.body.title, req.body.startTime, req.session.userId, req.body.duration, req.body.group, req.body.interest]);
     var q = "INSERT INTO activity VALUES(null, ?, ?, ?, ?, ?, true, ?, ?, null)";
-    //var q = "INSERT INTO ACTIVITY VALUES(null, 'Title', 'time', 'dbraun', 'desc', 'duration', true, 'None', 'Squash', null)"
     connection.query(q, [req.body.title, req.body.startTime, req.session.userId, req.body.description, req.body.duration, req.body.group, req.body.interest], function(err, results){
        if(err) throw err;
        res.redirect("search");
     });
-    // connection.query(q, function(err, results){
-    //     if(err) throw err;
-    //     res.redirect("search");
-    // })
 });
 
 app.post("/updateProfile", function(req, res){
