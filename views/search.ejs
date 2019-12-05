@@ -64,17 +64,18 @@
         <div class="col-xl-1">
             <div class="col-sm-4">
                 <div class="thumbnail">
-                    <div class="caption text-center" onclick="#">
-                        <h4 id="thumbnail-label"><a href="https://flow.microsoft.com/en-us/connectors/shared_slack/slack/" target="_blank"><%=activityData[count].Title%></a></h4>
-                        <p><i class="glyphicon glyphicon-user light-red lighter bigger-120"></i><%=activityData[count].Username%></p>
+                    <div class="caption text-center" onclick="window.location.href='/joinActivity/<%=activityData[count].ActivityId%>'">
+                        <h4 id="thumbnail-label"><a href="/joinActivity" target="_blank"><%=activityData[count].Title%></a></h4>
+                        <p><i class="glyphicon glyphicon-user light-red lighter bigger-120"></i> <%=activityData[count].Username%></p>
                         <div class="thumbnail-description smaller"><%=activityData[count].Description%></div>
                     </div>
                     <div class="caption card-footer text-center">
                         <ul class="list-inline">
-                            <li><i class="people lighter"></i>7 Participants</li>
+                            <li><i class="people lighter"></i><%=activityData[count].Count%> Participants</li>
                             <li></li>
-                            <li><i class="lighter"></i>Time: <%=activityData[count].StartTime%></li>
+                            <li><i class="lighter"></i>Date: <%=activityData[count].StartTime%></li>
                         </ul>
+                        <%if(user == activityData[count].Username){%><p><a href="/removeActivity/<%=activityData[count].ActivityId%>">Remove</a></p><%}%>
                     </div>
                 </div>
             </div>

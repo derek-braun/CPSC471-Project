@@ -86,16 +86,68 @@ app.use(function(req, res, next) {
     }
 });
 
+app.get("/joinActivity/:id", function(req, res) {
+    var q = "SELECT * FROM ACTIVITY WHERE ActivityId = ?";
+    var activity;
+    var participant;
+    var user = req.session.userId;
+    connection.query(q, [req.params.id], function(err, results){
+        if(err) throw err;
+        else activity = results[0];
+    });
+    q = "SELECT * FROM ACTIVITY_PARTICIPATION WHERE ActivityId = ? AND Member = ?";
+    connection.query(q, [req.params.id, req.session.userId], function(err, results){
+        if(err) throw err;
+        if(results.length == 0) participant = false;
+        else participant = true;
+    });
+    setTimeout(function() {
+        res.render("joinActivity", {activity: activity, participant: participant, user: user});
+    }, 50);
+});
+
+app.post("/joinActivity/:id", function(req, res){
+    var q = "INSERT INTO ACTIVITY_PARTICIPATION VALUES(?, ?);"
+    connection.query(q, [req.params.id, req.session.userId], function(err, results) {
+        if(err) throw err;
+        res.redirect("/search");
+    });
+});
+
+app.post("/leaveActivity/:id", function(req, res) {
+    var q = "DELETE FROM ACTIVITY_PARTICIPATION WHERE ActivityId = ? AND Member = ?;";
+    connection.query(q, [req.params.id, req.session.userId], function(err, results) {
+        if(err) throw err;
+        res.redirect("/search");
+    });
+});
+
+app.get("/removeActivity/:id", function(req, res) {
+    var q = "UPDATE ACTIVITY SET IsActive = false WHERE ActivityId = ?";
+    connection.query(q, [req.params.id], function(err, results) {
+        if(err) throw err;
+        res.redirect("/search");
+    });
+});
+
 app.get("/search", function(req, res){
-    var q = "SELECT * FROM ACTIVITY;"
-    connection.query(q, function(err, results){
-       if(err) console.log("An error has occured");
-       res.render("search", {activityData: results});
+    var user = req.session.userId;
+    var q = "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) As Count " +
+        "FROM ACTIVITY AS A, USER_INTEREST AS I, ACTIVITY_PARTICIPATION AS AP " +
+        "WHERE A.Interest = I.InterestName AND I.Username = ? AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "GROUP BY ActivityId " +
+        "UNION " +
+        "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) AS Count " +
+        "FROM ACTIVITY AS A, ACTIVITY_PARTICIPATION AS AP " +
+        "WHERE A.Interest = 'None' AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "GROUP BY ActivityId";
+    connection.query(q, [req.session.userId], function(err, results){
+       if(err) throw err;
+       res.render("search", {activityData: results, user: user});
     });
 });
 
 app.get("/profile", function(req, res){
-    //TODO fix no interests issue
     var username;
     var password;
     var birthday;
@@ -127,14 +179,22 @@ app.get("/activity", function(req, res){
 });
 
 app.post("/createActivity", function(req, res) {
+    var insertId;
     if(req.body.interest == ""){
         req.body.interest = "None";
     }
     var q = "INSERT INTO activity VALUES(null, ?, ?, ?, ?, ?, true, ?, ?, null)";
-    connection.query(q, [req.body.title, req.body.startTime, req.session.userId, req.body.description, req.body.duration, req.body.group, req.body.interest], function(err, results){
+    connection.query(q, [req.body.title, req.body.startDate + " " + req.body.startTime, req.session.userId, req.body.description, req.body.duration, req.body.group, req.body.interest], function(err, results){
        if(err) throw err;
-       res.redirect("search");
+       insertId = results.insertId;
     });
+    setTimeout(function() {
+        var q = "INSERT INTO ACTIVITY_PARTICIPATION VALUES(?, ?);"
+        connection.query(q, [insertId, req.session.userId], function(err, results) {
+            if(err) throw err;
+            return res.redirect("/search");
+        });
+    }, 50);
 });
 
 app.post("/updateProfile", function(req, res){
@@ -154,7 +214,7 @@ app.post("/updateProfile", function(req, res){
 app.post("/addInterest", function(req, res){
     var q = "INSERT INTO INTEREST_TOPIC VALUES(?, 1, null)";
     connection.query(q, [req.body.addInterest], function(err, results){
-        if(err) console.log("Interest Already Exists");
+        //if(err) console.log("Interest Already Exists");
     });
     q = "INSERT INTO USER_INTEREST VALUES(?, ?, 1)";
     connection.query(q, [req.body.addInterest, req.session.userId], function(err, results){
