@@ -42,6 +42,18 @@ app.get("/login", function (req, res){
     res.render("login");
 });
 
+app.get("/feedbackClient", function(req, res){
+    res.render("feedbackClient");
+});
+
+app.get("/feedbackAdmin", function(req, res){
+    res.render("feedbackAdmin")
+})
+
+app.get("/notifications", function(req, res){
+    res.render("notifications");
+})
+
 app.post("/signup", function(req, res){
     if(req.body.username != "" && req.body.password != ""){
         var q = "INSERT INTO USER VALUES(?, ?, ?, ?);"
@@ -55,6 +67,10 @@ app.post("/signup", function(req, res){
         q = "INSERT INTO USER_INTEREST VALUES(?, ?, ?);"
         connection.query(q, ["University", req.body.username, 1], function(err, results){
             if(err) console.log("An error has occured");
+        });
+        q = "INSERT INTO CLIENT_USER VALUES(?, 1, null);"
+        connection.query(q, [req.body.username], function(err, results){
+            if(err) console.log("An error has occured inserting into client user table");
         });
         setTimeout(function() {
             return res.redirect("profile");
@@ -232,6 +248,14 @@ app.post("/removeInterest/:id", function(req, res){
        return res.redirect("/profile");
     });
 });
+
+app.post("/createFeedback", function(req, res){
+    var q = "INSERT INTO FEEDBACK VALUES(null, ?, ?, ?);"
+    connection.query(q, [req.session.userId, req.body.feedback, req.body.topic], function(err, results){
+        if(err) console.log("An error has occured in creating feedback");
+        return res.redirect("/search");
+    })
+})
 
 app.get("/logout", function(req, res){
     if (req.session) {
