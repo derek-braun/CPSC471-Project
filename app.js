@@ -42,18 +42,6 @@ app.get("/login", function (req, res){
     res.render("login");
 });
 
-app.get("/feedbackClient", function(req, res){
-    res.render("feedbackClient");
-});
-
-/*app.get("/feedbackAdmin", function(req, res){
-    res.render("feedbackAdmin")
-})*/
-
-app.get("/notifications", function(req, res){
-    res.render("notifications");
-})
-
 app.post("/signup", function(req, res){
     if(req.body.username != "" && req.body.password != ""){
         var q = "INSERT INTO USER VALUES(?, ?, ?, ?);"
@@ -73,7 +61,7 @@ app.post("/signup", function(req, res){
             if(err) console.log("An error has occured inserting into client user table");
         });
         setTimeout(function() {
-            return res.redirect("/profile");
+            return res.redirect("/login");
         }, 100);
     }
 });
@@ -100,6 +88,24 @@ app.use(function(req, res, next) {
     } else {
         res.redirect("/");
     }
+});
+
+app.get("/feedback", function(req, res){
+    var q = "SELECT * FROM CLIENT_USER WHERE Username = ?";
+    var user = req.session.userId;
+    connection.query(q, [user], function(err, results){
+        if(err) throw err;
+        else if(results.length > 0){
+            res.render("feedbackClient");
+        }
+        else{
+            res.render("feedbackAdmin");
+        }
+    });
+});
+
+app.get("/notifications", function(req, res){
+    res.render("notifications");
 });
 
 app.get("/joinActivity/:id", function(req, res) {
@@ -284,7 +290,7 @@ app.post("/createFeedback", function(req, res){
     })
 
     q = "INSERT INTO FEEDBACK_VIEW VALUES(null, ?);"
-    
+
     if(req.body.topic == "bugs-fixes"){
         console.log("Made it to bugs-fixes");
         connection.query(q, ["admin1"], function(err, results){
