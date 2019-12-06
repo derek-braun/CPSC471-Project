@@ -20,9 +20,19 @@
         <div class="nav pull-right" style="margin-top: 15px; margin-right: 50px;">
             <a href="groups" style="margin-right:40px; margin-right: 50px;">Groups</a>
             <a href="notifications" style="margin-right: 40px;">Notifications</a>
-            <a href="feedbackAdmin" style="margin-right:40px;">Feedback</a>
+            <a href="feedback" style="margin-right:40px;">Feedback</a>
             <a href="login">Logout</a>
         </div>
     </div>
 </nav>
 
+<div class="col-xs-4" style="background-color:#EEEEEE; border-radius:10px; margin-left:15px">
+    <h3>Notifications</h3>
+    <ul>
+        <% for(var i = 0; i < feedback.length; i++){ %>
+        <form method="POST" action="/resolveFeedback/<%=feedback[i].FeedbackId%>">
+            <li><pre><%=feedback[i].Content%> - <%=feedback[i].ClientName%> <button type="submit" class="btn" id="interest">Resolve</button></pre></li>
+        </form>
+        <% } %>
+    </ul>
+</div>

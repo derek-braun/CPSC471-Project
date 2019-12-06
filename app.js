@@ -103,13 +103,26 @@ app.get("/feedback", function(req, res){
             res.render("feedbackClient");
         }
         else{
-            res.render("feedbackAdmin");
+            q = "SELECT * FROM FEEDBACK AS F " +
+                "WHERE EXISTS " +
+                "(SELECT FeedbackId FROM FEEDBACK_VIEW AS V " +
+                "WHERE V.FeedbackId = F.FeedbackId AND " +
+                "AdminUsername = ?)";
+            connection.query(q, [user], function(err, results) {
+                if(err) throw err;
+                res.render("feedbackAdmin", {feedback: results});
+            });
         }
     });
 });
 
 app.get("/notifications", function(req, res){
-    res.render("notifications");
+    var q = "SEELECT * FROM " +
+        "CONFIRMATION_SEND AS S, CONFIRMATION AS C " +
+        "WHERE S.Username = ? AND S.ConfirmationId = C.ConfirmationID";
+    connection.query(q, [req.session.userId], function(err, results) {
+        if(err) throw err;
+    })
 });
 
 app.get("/joinActivity/:id", function(req, res) {
@@ -156,10 +169,45 @@ app.get("/removeActivity/:id", function(req, res) {
     });
 });
 
+app.get("/confirmActivity/:id", function(req, res) {
+    var description;
+    var insertId;
+    var q = "UPDATE ACTIVITY SET IsActive = false WHERE ActivityId = ?";
+    connection.query(q, [req.params.id], function(err, results) {
+        if(err) throw err;
+    });
+    q = "SELECT * FROM ACTIVITY AS A, ACTIVITY_PARTICIPATION AS P " +
+        "WHERE A.ActivityId = ? AND A.ActivityId = P.ActivityId";
+    connection.query(q, [req.params.id], function(err, results) {
+        if(err) throw err;
+        if(results.length > 0){
+            description = results[0].Title + " " + results[0].Description + " " + results[0].StartTime + " ";
+        }
+        for(var i = 0; i < results.length; i++){
+            description = description + results[i].Member + " ";
+        }
+        q = "INSERT INTO CONFIRMATION VALUES(null, ?, ?)";
+        connection.query(q, [req.params.id, description], function(err, resultsCon) {
+            if(err) throw err;
+            insertId = resultsCon.insertId;
+            q = "INSERT INTO CONFIRMATION_SEND VALUES(?, ?)";
+            for(var i = 0; i < results.length; i++) {
+                connection.query(q, [insertId, results[i].Member], function(err, resultsSend) {
+                   if(err) throw err;
+                });
+            }
+        });
+    });
+    setTimeout(function() {
+        return res.redirect("/search");
+    }, 100);
+});
+
 app.get("/search", function(req, res){
     var today = new Date();
     var format = String(today.getFullYear()) + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0');
     //format = "2019-11-01"
+    var admin;
     var user = req.session.userId;
     var q = "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) As Count " +
         "FROM ACTIVITY AS A, USER_INTEREST AS I, ACTIVITY_PARTICIPATION AS AP " +
@@ -174,7 +222,18 @@ app.get("/search", function(req, res){
         "GROUP BY ActivityId";
     connection.query(q, [req.session.userId, format, format], function(err, results){
        if(err) throw err;
-       res.render("search", {activityData: results, user: user});
+       var activityData = results;
+        q = "SELECT Username FROM USER " +
+            "WHERE Username = ? AND User_Type = 'admin';";
+        connection.query(q, [req.session.userId], function(err, results) {
+            if(err) throw err;
+            if(results.length > 0){
+                admin = true;
+            }else{
+                admin = false;
+            }
+            res.render("search", {activityData: activityData, user: user, admin: admin});
+        });
     });
 });
 
@@ -182,6 +241,7 @@ app.post("/searchActivities", function(req, res) {
     var today = new Date();
     var format = String(today.getFullYear()) + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0');
     //format = "2019-11-01"
+    var admin;
     var user = req.session.userId;
     var q = "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) As Count " +
         "FROM ACTIVITY AS A, USER_INTEREST AS I, ACTIVITY_PARTICIPATION AS AP " +
@@ -197,7 +257,18 @@ app.post("/searchActivities", function(req, res) {
     var like = ("%" + req.body.searchBar + "%");
     connection.query(q, [req.session.userId, format, like, format, like], function(err, results){
         if(err) throw err;
-        res.render("search", {activityData: results, user: user});
+        var activityData = results;
+        q = "SELECT Username FROM USER " +
+            "WHERE Username = ? AND User_Type = 'admin';";
+        connection.query(q, [req.session.userId], function(err, results) {
+            if(err) throw err;
+            if(results.length > 0){
+                admin = true;
+            }else{
+                admin = false;
+            }
+            res.render("search", {activityData: activityData, user: user, admin: admin});
+        });
     });
 });
 
@@ -287,35 +358,69 @@ app.post("/removeInterest/:id", function(req, res){
     });
 });
 
+app.post("/resolveFeedback/:id", function(req, res) {
+    var q = "DELETE FROM FEEDBACK_VIEW WHERE FeedbackId = ?;"
+    connection.query(q, [req.params.id], function(err, results) {
+       if(err) throw err;
+    });
+    q = "DELETE FROM FEEDBACK WHERE FeedbackId = ?;"
+    connection.query(q, [req.params.id], function(err, results) {
+        if(err) throw err;
+    });
+    setTimeout(function() {
+        return res.redirect("/feedback");
+    }, 50);
+});
+
 app.post("/createFeedback", function(req, res){
     var q = "INSERT INTO FEEDBACK VALUES(null, ?, ?, ?);"
+    var insertId;
     connection.query(q, [req.session.userId, req.body.feedback, req.body.topic], function(err, results){
         if(err) console.log("An error has occured in creating feedback");
-    })
+        insertId = results.insertId;
+    });
 
-    q = "INSERT INTO FEEDBACK_VIEW VALUES(null, ?);"
+    q = "SELECT * FROM ADMIN_USER";
+    var adminList;
+    connection.query(q, function(err, results){
+        adminList = results;
+        q = "INSERT INTO FEEDBACK_VIEW VALUES(?, ?);"
 
-    if(req.body.topic == "bugs-fixes"){
-        connection.query(q, ["admin1"], function(err, results){
-            if(err) console.log("An error has occured inserting into feedback_view bugs-fixes");
-            return res.redirect("/search");
-        });
-    }
+        if(req.body.topic == "bugs-fixes"){
+            for(var i = 0; i < adminList.length; i++) {
+                if(adminList[i].Designation == "bug-fixes") {
+                    connection.query(q, [insertId, adminList[i].Username], function (err, results) {
+                        if (err) console.log("An error has occured inserting into feedback_view bugs-fixes");
+                    });
+                }
+            }
+        }
 
-    else if(req.body.topic == "upgrading"){
-        connection.query(q, ["admin2"], function(err, results){
-            if(err) console.log("An error has occured inserting into feedback_view upgrading");
-            return res.redirect("/search");
-        })
-    }
+        else if(req.body.topic == "upgrading"){
+            for(var i = 0; i < adminList.length; i++) {
+                if(adminList[i].Designation == "upgrading") {
+                    connection.query(q, [insertId, adminList[i].Username], function (err, results) {
+                        if (err) console.log("An error has occured inserting into feedback_view upgrading");
+                    })
+                }
+            }
+        }
 
-    else if(req.body.topic == "general"){
-        connection.query(q, ["admin3"], function(err, results){
-            if(err) console.log("An error has occured inserting into feedback_view general");
-            return res.redirect("/search");
-        })
-    }
-})
+        else if(req.body.topic == "general"){
+            for(var i = 0; i < adminList.length; i++) {
+                if(adminList[i].Designation == "general") {
+                    connection.query(q, [insertId, adminList[i].Username], function (err, results) {
+                        if (err) console.log("An error has occured inserting into feedback_view general");
+                    })
+                }
+            }
+        }
+    });
+    setTimeout(function() {
+        return res.redirect("/search");
+    }, 100);
+
+});
 
 app.get("/feedbackAdmin", function(req, res){
     var q = "SELECT V.FeedbackId, F.FeedbackId, F.Content, F.ClientName " +
@@ -325,7 +430,7 @@ app.get("/feedbackAdmin", function(req, res){
         if(err) throw err;
         res.render("feedbackAdmin", {feedbackData: results});
     })
-})
+});
 
 app.get("/logout", function(req, res){
     if (req.session) {

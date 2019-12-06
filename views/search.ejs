@@ -77,7 +77,7 @@
                             <li></li>
                             <li><i class="lighter"></i>Date: <%=activityData[count].StartTime%></li>
                         </ul>
-                        <%if(user == activityData[count].Username){%><p><a href="/removeActivity/<%=activityData[count].ActivityId%>">Remove</a></p><%}%>
+                        <p><%if(user == activityData[count].Username || admin){%><a href="/removeActivity/<%=activityData[count].ActivityId%>">Remove</a><%}%> <%if(user == activityData[count].Username){%><a style="padding-left:5em" href="/confirmActivity/<%=activityData[count].ActivityId%>">Confirm</a><%}%></p>
                     </div>
                 </div>
             </div>
