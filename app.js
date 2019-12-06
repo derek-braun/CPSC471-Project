@@ -73,8 +73,8 @@ app.post("/signup", function(req, res){
             if(err) console.log("An error has occured inserting into client user table");
         });
         setTimeout(function() {
-            return res.redirect("profile");
-        }, 50);
+            return res.redirect("/profile");
+        }, 100);
     }
 });
 
@@ -147,19 +147,47 @@ app.get("/removeActivity/:id", function(req, res) {
 });
 
 app.get("/search", function(req, res){
+    var today = new Date();
+    var format = String(today.getFullYear()) + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0');
+    //format = "2019-11-01"
     var user = req.session.userId;
     var q = "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) As Count " +
         "FROM ACTIVITY AS A, USER_INTEREST AS I, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = I.InterestName AND I.Username = ? AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "AND A.StartTime > ? " +
         "GROUP BY ActivityId " +
         "UNION " +
         "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) AS Count " +
         "FROM ACTIVITY AS A, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = 'None' AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "AND A.StartTime > ? " +
         "GROUP BY ActivityId";
-    connection.query(q, [req.session.userId], function(err, results){
+    connection.query(q, [req.session.userId, format, format], function(err, results){
        if(err) throw err;
        res.render("search", {activityData: results, user: user});
+    });
+});
+
+app.post("/searchActivities", function(req, res) {
+    var today = new Date();
+    var format = String(today.getFullYear()) + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0');
+    //format = "2019-11-01"
+    var user = req.session.userId;
+    var q = "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) As Count " +
+        "FROM ACTIVITY AS A, USER_INTEREST AS I, ACTIVITY_PARTICIPATION AS AP " +
+        "WHERE A.Interest = I.InterestName AND I.Username = ? AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "AND A.StartTime > ? AND A.Title LIKE ? " +
+        "GROUP BY ActivityId " +
+        "UNION " +
+        "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) AS Count " +
+        "FROM ACTIVITY AS A, ACTIVITY_PARTICIPATION AS AP " +
+        "WHERE A.Interest = 'None' AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "AND A.StartTime > ? AND A.Title LIKE ? " +
+        "GROUP BY ActivityId";
+    var like = ("%" + req.body.searchBar + "%");
+    connection.query(q, [req.session.userId, format, like, format, like], function(err, results){
+        if(err) throw err;
+        res.render("search", {activityData: results, user: user});
     });
 });
 
