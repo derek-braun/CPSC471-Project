@@ -24,3 +24,17 @@
         </div>
     </div>
 </nav>
+
+<div class="col-xs-4" style="background-color:#EEEEEE; border-radius:10px; margin-left:15px">
+    <h3>Groups</h3><br>
+    <ul>
+        <% for(var i = 0; i < groups.length; i++){ %>
+        <form method="POST" action="/joinGroup/<%=groups[i].Title%>">
+            <li><h5><b><%=groups[i].Title%></b> <button style="margin-left:5em" type="submit" class="btn btn-primary" id="interest">Join</button></h5>
+                <p>Owner: <%=groups[i].CreatorUser%></p>
+                <p>Number of Members: <%=groups[i].NumMembers%></p>
+            </li>
+        </form>
+        <% } %>
+    </ul>
+</div>

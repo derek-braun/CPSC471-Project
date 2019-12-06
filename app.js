@@ -42,25 +42,25 @@ app.get("/login", function (req, res){
     res.render("login");
 });
 
-app.get("/groups", function(req, res){
-    res.render("groups");
-})
-
 app.post("/signup", function(req, res){
     if(req.body.username != "" && req.body.password != ""){
-        var q = "INSERT INTO USER VALUES(?, ?, ?, ?);"
+        var q = "INSERT INTO USER " +
+            "VALUES(?, ?, ?, ?);"
         connection.query(q, [req.body.username, req.body.password, "client", req.body.birthday], function(err, results){
             if(err) console.log("An error has occured");
         });
-        q = "INSERT INTO FACULTY_ASSIGNMENT VALUES(?, ?);"
+        q = "INSERT INTO FACULTY_ASSIGNMENT " +
+            "VALUES(?, ?);"
         connection.query(q, [req.body.faculty, req.body.username], function(err, results){
             if(err) console.log("An error has occured");
         });
-        q = "INSERT INTO USER_INTEREST VALUES(?, ?, ?);"
+        q = "INSERT INTO USER_INTEREST " +
+            "VALUES(?, ?, ?);"
         connection.query(q, ["University", req.body.username, 1], function(err, results){
             if(err) console.log("An error has occured");
         });
-        q = "INSERT INTO CLIENT_USER VALUES(?, 1, null);"
+        q = "INSERT INTO CLIENT_USER " +
+            "VALUES(?, 1, null);"
         connection.query(q, [req.body.username], function(err, results){
             if(err) console.log("An error has occured inserting into client user table");
         });
@@ -71,7 +71,8 @@ app.post("/signup", function(req, res){
 });
 
 app.post("/login", function (req, res){
-    var q = "SELECT * FROM USER WHERE Username = ? AND Password = ?;"
+    var q = "SELECT * FROM USER " +
+        "WHERE Username = ? AND Password = ?;"
     connection.query(q, [req.body.username, req.body.password], function(err, results){
         if(err) console.log("An error has occurred");
         if(results.length == 0){
@@ -94,8 +95,20 @@ app.use(function(req, res, next) {
     }
 });
 
+app.get("/groups", function(req, res){
+    var q = "SELECT * FROM TOPIC_GROUP AS TG, GROUP_FOCUS AS GF  " +
+        "WHERE Title <> 'None' AND GF.GroupTitle = TG.Title AND " +
+        "NOT EXISTS(SELECT * FROM GROUP_MEMBERSHIP AS GF " +
+        "WHERE GF.GroupTitle = TG.Title AND GF.Member = ?)";
+    connection.query(q, [req.session.userId], function(err, results) {
+        if(err) throw err;
+        res.render("groups", {groups: results});
+    });
+});
+
 app.get("/feedback", function(req, res){
-    var q = "SELECT * FROM CLIENT_USER WHERE Username = ?";
+    var q = "SELECT * FROM CLIENT_USER " +
+        "WHERE Username = ?";
     var user = req.session.userId;
     connection.query(q, [user], function(err, results){
         if(err) throw err;
@@ -127,7 +140,8 @@ app.get("/notifications", function(req, res){
         "AND A.ActivityId = C.ActivityId AND A.StartTime > ? ";
     connection.query(q, [req.session.userId, format], function(err, results) {
         if(err) throw err;
-        q = "SELECT * FROM CONFIRMATION_SEND WHERE ConfirmationId = ?";
+        q = "SELECT * FROM CONFIRMATION_SEND " +
+            "WHERE ConfirmationId = ?";
         for(var i = 0; i < results.length; i++){
             connection.query(q, [results[i].ConfirmationId], function(err, resultsPart) {
                 if(err) throw err;
@@ -141,7 +155,8 @@ app.get("/notifications", function(req, res){
 });
 
 app.get("/joinActivity/:id", function(req, res) {
-    var q = "SELECT * FROM ACTIVITY WHERE ActivityId = ?";
+    var q = "SELECT * FROM ACTIVITY " +
+        "WHERE ActivityId = ?";
     var activity;
     var participant;
     var user = req.session.userId;
@@ -149,7 +164,8 @@ app.get("/joinActivity/:id", function(req, res) {
         if(err) throw err;
         else activity = results[0];
     });
-    q = "SELECT * FROM ACTIVITY_PARTICIPATION WHERE ActivityId = ? AND Member = ?";
+    q = "SELECT * FROM ACTIVITY_PARTICIPATION " +
+        "WHERE ActivityId = ? AND Member = ?";
     connection.query(q, [req.params.id, req.session.userId], function(err, results){
         if(err) throw err;
         if(results.length == 0) participant = false;
@@ -161,15 +177,27 @@ app.get("/joinActivity/:id", function(req, res) {
 });
 
 app.post("/joinActivity/:id", function(req, res){
-    var q = "INSERT INTO ACTIVITY_PARTICIPATION VALUES(?, ?);"
+    var q = "INSERT INTO ACTIVITY_PARTICIPATION " +
+        "VALUES(?, ?);"
     connection.query(q, [req.params.id, req.session.userId], function(err, results) {
         if(err) throw err;
         res.redirect("/search");
     });
 });
 
+app.post("/joinGroup/:id", function(req, res) {
+    var q = "INSERT INTO GROUP_MEMBERSHIP " +
+        "VALUES(?, ?);"
+    connection.query(q, [req.params.id, req.session.userId], function(err, results) {
+        if(err) throw err;
+        res.redirect("/groups");
+    });
+});
+
 app.post("/leaveActivity/:id", function(req, res) {
-    var q = "DELETE FROM ACTIVITY_PARTICIPATION WHERE ActivityId = ? AND Member = ?;";
+    var q = "DELETE " +
+        "FROM ACTIVITY_PARTICIPATION " +
+        "WHERE ActivityId = ? AND Member = ?;";
     connection.query(q, [req.params.id, req.session.userId], function(err, results) {
         if(err) throw err;
         res.redirect("/search");
@@ -177,7 +205,9 @@ app.post("/leaveActivity/:id", function(req, res) {
 });
 
 app.get("/removeActivity/:id", function(req, res) {
-    var q = "UPDATE ACTIVITY SET IsActive = false WHERE ActivityId = ?";
+    var q = "UPDATE ACTIVITY " +
+        "SET IsActive = false " +
+        "WHERE ActivityId = ?";
     connection.query(q, [req.params.id], function(err, results) {
         if(err) throw err;
         res.redirect("/search");
@@ -185,7 +215,8 @@ app.get("/removeActivity/:id", function(req, res) {
 });
 
 app.get("/blacklist/:id", function(req, res) {
-   var q = "INSERT INTO BLACKLIST VALUES(?, ?)";
+   var q = "INSERT INTO BLACKLIST " +
+       "VALUES(?, ?)";
    connection.query(q, [req.session.userId, req.params.id], function(err, results) {
    })
 });
@@ -193,7 +224,9 @@ app.get("/blacklist/:id", function(req, res) {
 app.get("/confirmActivity/:id", function(req, res) {
     var description;
     var insertId;
-    var q = "UPDATE ACTIVITY SET IsActive = false WHERE ActivityId = ?";
+    var q = "UPDATE ACTIVITY " +
+        "SET IsActive = false " +
+        "WHERE ActivityId = ?";
     connection.query(q, [req.params.id], function(err, results) {
         if(err) throw err;
     });
@@ -202,11 +235,13 @@ app.get("/confirmActivity/:id", function(req, res) {
     connection.query(q, [req.params.id], function(err, results) {
         if(err) throw err;
         description = "Activity Reminder: "
-        q = "INSERT INTO CONFIRMATION VALUES(null, ?, ?)";
+        q = "INSERT INTO CONFIRMATION " +
+            "VALUES(null, ?, ?)";
         connection.query(q, [req.params.id, description], function(err, resultsCon) {
             if(err) throw err;
             insertId = resultsCon.insertId;
-            q = "INSERT INTO CONFIRMATION_SEND VALUES(?, ?)";
+            q = "INSERT INTO CONFIRMATION_SEND " +
+                "VALUES(?, ?)";
             for(var i = 0; i < results.length; i++) {
                 connection.query(q, [insertId, results[i].Member], function(err, resultsSend) {
                    if(err) throw err;
@@ -229,14 +264,18 @@ app.get("/search", function(req, res){
         "FROM ACTIVITY AS A, USER_INTEREST AS I, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = I.InterestName AND I.Username = ? AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
         "AND A.StartTime > ? " +
+        "AND NOT EXISTS (SELECT * FROM ACTIVITY_PARTICIPATION AS AP2, BLACKLIST AS B " +
+        "WHERE AP2.Member = B.ForUser AND B.ByUser = ? AND AP2.ActivityId = A.ActivityId) " +
         "GROUP BY ActivityId " +
         "UNION " +
         "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) AS Count " +
         "FROM ACTIVITY AS A, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = 'None' AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
         "AND A.StartTime > ? " +
+        "AND NOT EXISTS (SELECT * FROM ACTIVITY_PARTICIPATION AS AP2, BLACKLIST AS B " +
+        "WHERE AP2.Member = B.ForUser AND B.ByUser = ? AND AP2.ActivityId = A.ActivityId) " +
         "GROUP BY ActivityId";
-    connection.query(q, [req.session.userId, format, format], function(err, results){
+    connection.query(q, [req.session.userId, format, req.session.userId, format, req.session.userId], function(err, results){
        if(err) throw err;
        var activityData = results;
         q = "SELECT Username FROM USER " +
@@ -263,15 +302,19 @@ app.post("/searchActivities", function(req, res) {
         "FROM ACTIVITY AS A, USER_INTEREST AS I, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = I.InterestName AND I.Username = ? AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
         "AND A.StartTime > ? AND A.Title LIKE ? " +
+        "AND NOT EXISTS (SELECT * FROM ACTIVITY_PARTICIPATION AS AP2, BLACKLIST AS B " +
+        "WHERE AP2.Member = B.ForUser AND B.ByUser = ? AND AP2.ActivityId = A.ActivityId) " +
         "GROUP BY ActivityId " +
         "UNION " +
         "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) AS Count " +
         "FROM ACTIVITY AS A, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = 'None' AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
         "AND A.StartTime > ? AND A.Title LIKE ? " +
+        "AND NOT EXISTS (SELECT * FROM ACTIVITY_PARTICIPATION AS AP2, BLACKLIST AS B " +
+        "WHERE AP2.Member = B.ForUser AND B.ByUser = ? AND AP2.ActivityId = A.ActivityId) " +
         "GROUP BY ActivityId";
     var like = ("%" + req.body.searchBar + "%");
-    connection.query(q, [req.session.userId, format, like, format, like], function(err, results){
+    connection.query(q, [req.session.userId, format, like, req.session.userId, format, like, req.session.userId], function(err, results){
         if(err) throw err;
         var activityData = results;
         q = "SELECT Username FROM USER " +
@@ -316,7 +359,12 @@ app.get("/profile", function(req, res){
 });
 
 app.get("/activity", function(req, res){
-    res.render("activity");
+    var groups;
+    var q = "SELECT * FROM GROUP_MEMBERSHIP WHERE Member = ?";
+    connection.query(q, [req.session.userId], function(err, results) {
+        groups = results;
+        res.render("activity", {groups: groups});
+    });
 });
 
 app.post("/createActivity", function(req, res) {
@@ -324,13 +372,15 @@ app.post("/createActivity", function(req, res) {
     if(req.body.interest == ""){
         req.body.interest = "None";
     }
-    var q = "INSERT INTO activity VALUES(null, ?, ?, ?, ?, ?, true, ?, ?, null)";
+    var q = "INSERT INTO activity " +
+        "VALUES(null, ?, ?, ?, ?, ?, true, ?, ?, null)";
     connection.query(q, [req.body.title, req.body.startDate + " " + req.body.startTime, req.session.userId, req.body.description, req.body.duration, req.body.group, req.body.interest], function(err, results){
        if(err) throw err;
        insertId = results.insertId;
     });
     setTimeout(function() {
-        var q = "INSERT INTO ACTIVITY_PARTICIPATION VALUES(?, ?);"
+        var q = "INSERT INTO ACTIVITY_PARTICIPATION " +
+            "VALUES(?, ?);"
         connection.query(q, [insertId, req.session.userId], function(err, results) {
             if(err) throw err;
             return res.redirect("/search");
@@ -339,11 +389,15 @@ app.post("/createActivity", function(req, res) {
 });
 
 app.post("/updateProfile", function(req, res){
-    var q = "UPDATE USER SET Password = ?, Birthdate = ? WHERE Username = ?;"
+    var q = "UPDATE USER SET " +
+        "Password = ?, Birthdate = ? " +
+        "WHERE Username = ?;"
     connection.query(q, [req.body.password, req.body.birthday, req.session.userId], function(err, results){
         if(err) console.log("An error has occured");
     });
-    q = "UPDATE faculty_assignment SET FacultyName = ? WHERE Username = ?;"
+    q = "UPDATE faculty_assignment " +
+        "SET FacultyName = ? " +
+        "WHERE Username = ?;"
     connection.query(q, [req.body.faculty, req.session.userId], function(err, results){
         if(err) console.log("An error has occured");
     });
@@ -353,11 +407,13 @@ app.post("/updateProfile", function(req, res){
 });
 
 app.post("/addInterest", function(req, res){
-    var q = "INSERT INTO INTEREST_TOPIC VALUES(?, 1, null)";
+    var q = "INSERT INTO INTEREST_TOPIC " +
+        "VALUES(?, 1, null)";
     connection.query(q, [req.body.addInterest], function(err, results){
         //if(err) console.log("Interest Already Exists");
     });
-    q = "INSERT INTO USER_INTEREST VALUES(?, ?, 1)";
+    q = "INSERT INTO USER_INTEREST " +
+        "VALUES(?, ?, 1)";
     connection.query(q, [req.body.addInterest, req.session.userId], function(err, results){
         if(err) console.log("An error has occured");
     })
@@ -367,7 +423,8 @@ app.post("/addInterest", function(req, res){
 });
 
 app.post("/removeInterest/:id", function(req, res){
-    var q = "DELETE FROM USER_INTEREST WHERE InterestName = ? AND Username = ?;"
+    var q = "DELETE FROM USER_INTEREST " +
+        "WHERE InterestName = ? AND Username = ?;"
     connection.query(q, [req.params.id, req.session.userId], function(err, results){
        if(err) console.log("An error has occured");
        return res.redirect("/profile");
@@ -375,11 +432,13 @@ app.post("/removeInterest/:id", function(req, res){
 });
 
 app.post("/resolveFeedback/:id", function(req, res) {
-    var q = "DELETE FROM FEEDBACK_VIEW WHERE FeedbackId = ?;"
+    var q = "DELETE FROM FEEDBACK_VIEW " +
+        "WHERE FeedbackId = ?;"
     connection.query(q, [req.params.id], function(err, results) {
        if(err) throw err;
     });
-    q = "DELETE FROM FEEDBACK WHERE FeedbackId = ?;"
+    q = "DELETE FROM FEEDBACK " +
+        "WHERE FeedbackId = ?;"
     connection.query(q, [req.params.id], function(err, results) {
         if(err) throw err;
     });
@@ -389,7 +448,8 @@ app.post("/resolveFeedback/:id", function(req, res) {
 });
 
 app.post("/createFeedback", function(req, res){
-    var q = "INSERT INTO FEEDBACK VALUES(null, ?, ?, ?);"
+    var q = "INSERT INTO FEEDBACK " +
+        "VALUES(null, ?, ?, ?);"
     var insertId;
     connection.query(q, [req.session.userId, req.body.feedback, req.body.topic], function(err, results){
         if(err) console.log("An error has occured in creating feedback");

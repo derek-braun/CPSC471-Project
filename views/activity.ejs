@@ -54,6 +54,9 @@
             <label for="group">Group</label>
             <select class="form-control" id="group" name="group">
                 <option value="None">None</option>
+                <%for(var i = 0; i < groups.length; i++){%>
+                    <option value="<%=groups[i].GroupTitle%>"><%=groups[i].GroupTitle%></option>
+                <%}%>
             </select>
         </div>
         <button type="submit" class="btn btn-primary">Create</button>
