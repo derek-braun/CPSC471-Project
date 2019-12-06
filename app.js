@@ -46,9 +46,9 @@ app.get("/feedbackClient", function(req, res){
     res.render("feedbackClient");
 });
 
-app.get("/feedbackAdmin", function(req, res){
+/*app.get("/feedbackAdmin", function(req, res){
     res.render("feedbackAdmin")
-})
+})*/
 
 app.get("/notifications", function(req, res){
     res.render("notifications");
@@ -253,7 +253,42 @@ app.post("/createFeedback", function(req, res){
     var q = "INSERT INTO FEEDBACK VALUES(null, ?, ?, ?);"
     connection.query(q, [req.session.userId, req.body.feedback, req.body.topic], function(err, results){
         if(err) console.log("An error has occured in creating feedback");
-        return res.redirect("/search");
+    })
+
+    q = "INSERT INTO FEEDBACK_VIEW VALUES(null, ?);"
+    
+    if(req.body.topic == "bugs-fixes"){
+        console.log("Made it to bugs-fixes");
+        connection.query(q, ["admin1"], function(err, results){
+            if(err) console.log("An error has occured inserting into feedback_view bugs-fixes");
+            return res.redirect("/search");
+        });
+    }
+
+    else if(req.body.topic == "upgrading"){
+        console.log("Made it to upgrading");
+        connection.query(q, ["admin2"], function(err, results){
+            if(err) console.log("An error has occured inserting into feedback_view upgrading");
+            return res.redirect("/search");
+        })
+    }
+
+    else if(req.body.topic == "general"){
+        console.log("Made it to general");
+        connection.query(q, ["admin3"], function(err, results){
+            if(err) console.log("An error has occured inserting into feedback_view general");
+            return res.redirect("/search");
+        })
+    }
+})
+
+app.get("/feedbackAdmin", function(req, res){
+    var q = "SELECT V.FeedbackId, F.FeedbackId, F.Content, F.ClientName " +
+             "FROM FEEDBACK_VIEW AS V, FEEDBACK AS F " +
+             "WHERE V.FeedbackId = F.FeedbackId";
+    connection.query(q, function(err, results){
+        if(err) throw err;
+        res.render("feedbackAdmin", {feedbackData: results});
     })
 })
 
