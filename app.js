@@ -263,6 +263,7 @@ app.get("/search", function(req, res){
     var q = "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) As Count " +
         "FROM ACTIVITY AS A, USER_INTEREST AS I, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = I.InterestName AND I.Username = ? AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "AND (A.TopicGroup = 'None' OR EXISTS (SELECT * FROM GROUP_MEMBERSHIP AS G WHERE G.GroupTitle = A.TopicGroup AND G.Member = ?)) " +
         "AND A.StartTime > ? " +
         "AND NOT EXISTS (SELECT * FROM ACTIVITY_PARTICIPATION AS AP2, BLACKLIST AS B " +
         "WHERE AP2.Member = B.ForUser AND B.ByUser = ? AND AP2.ActivityId = A.ActivityId) " +
@@ -271,11 +272,12 @@ app.get("/search", function(req, res){
         "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) AS Count " +
         "FROM ACTIVITY AS A, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = 'None' AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "AND (A.TopicGroup = 'None' OR EXISTS (SELECT * FROM GROUP_MEMBERSHIP AS G WHERE G.GroupTitle = A.TopicGroup AND G.Member = ?))" +
         "AND A.StartTime > ? " +
         "AND NOT EXISTS (SELECT * FROM ACTIVITY_PARTICIPATION AS AP2, BLACKLIST AS B " +
         "WHERE AP2.Member = B.ForUser AND B.ByUser = ? AND AP2.ActivityId = A.ActivityId) " +
         "GROUP BY ActivityId";
-    connection.query(q, [req.session.userId, format, req.session.userId, format, req.session.userId], function(err, results){
+    connection.query(q, [req.session.userId, req.session.userId, format, req.session.userId, req.session.userId, format, req.session.userId], function(err, results){
        if(err) throw err;
        var activityData = results;
         q = "SELECT Username FROM USER " +
@@ -301,6 +303,7 @@ app.post("/searchActivities", function(req, res) {
     var q = "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) As Count " +
         "FROM ACTIVITY AS A, USER_INTEREST AS I, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = I.InterestName AND I.Username = ? AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "AND (A.TopicGroup = 'None' OR EXISTS (SELECT * FROM GROUP_MEMBERSHIP AS G WHERE G.GroupTitle = A.TopicGroup AND G.Member = ?)) " +
         "AND A.StartTime > ? AND A.Title LIKE ? " +
         "AND NOT EXISTS (SELECT * FROM ACTIVITY_PARTICIPATION AS AP2, BLACKLIST AS B " +
         "WHERE AP2.Member = B.ForUser AND B.ByUser = ? AND AP2.ActivityId = A.ActivityId) " +
@@ -309,12 +312,13 @@ app.post("/searchActivities", function(req, res) {
         "SELECT A.ActivityId, A.Title, A.StartTime, A.Username, A.Description, A.Duration, A.IsActive, A.TopicGroup, A.Interest, COUNT(*) AS Count " +
         "FROM ACTIVITY AS A, ACTIVITY_PARTICIPATION AS AP " +
         "WHERE A.Interest = 'None' AND AP.ActivityId = A.ActivityId AND A.IsActive = true " +
+        "AND (A.TopicGroup = 'None' OR EXISTS (SELECT * FROM GROUP_MEMBERSHIP AS G WHERE G.GroupTitle = A.TopicGroup AND G.Member = ?)) " +
         "AND A.StartTime > ? AND A.Title LIKE ? " +
         "AND NOT EXISTS (SELECT * FROM ACTIVITY_PARTICIPATION AS AP2, BLACKLIST AS B " +
         "WHERE AP2.Member = B.ForUser AND B.ByUser = ? AND AP2.ActivityId = A.ActivityId) " +
         "GROUP BY ActivityId";
     var like = ("%" + req.body.searchBar + "%");
-    connection.query(q, [req.session.userId, format, like, req.session.userId, format, like, req.session.userId], function(err, results){
+    connection.query(q, [req.session.userId, req.session.userId, format, like, req.session.userId, req.session.userId, format, like, req.session.userId], function(err, results){
         if(err) throw err;
         var activityData = results;
         q = "SELECT Username FROM USER " +
@@ -391,13 +395,13 @@ app.post("/createActivity", function(req, res) {
 app.post("/updateProfile", function(req, res){
     var q = "UPDATE USER SET " +
         "Password = ?, Birthdate = ? " +
-        "WHERE Username = ?;"
+        "WHERE Username = ?;";
     connection.query(q, [req.body.password, req.body.birthday, req.session.userId], function(err, results){
         if(err) console.log("An error has occured");
     });
     q = "UPDATE faculty_assignment " +
         "SET FacultyName = ? " +
-        "WHERE Username = ?;"
+        "WHERE Username = ?;";
     connection.query(q, [req.body.faculty, req.session.userId], function(err, results){
         if(err) console.log("An error has occured");
     });
