@@ -42,6 +42,10 @@ app.get("/login", function (req, res){
     res.render("login");
 });
 
+app.get("/groups", function(req, res){
+    res.render("groups");
+})
+
 app.post("/signup", function(req, res){
     if(req.body.username != "" && req.body.password != ""){
         var q = "INSERT INTO USER VALUES(?, ?, ?, ?);"
@@ -292,7 +296,6 @@ app.post("/createFeedback", function(req, res){
     q = "INSERT INTO FEEDBACK_VIEW VALUES(null, ?);"
 
     if(req.body.topic == "bugs-fixes"){
-        console.log("Made it to bugs-fixes");
         connection.query(q, ["admin1"], function(err, results){
             if(err) console.log("An error has occured inserting into feedback_view bugs-fixes");
             return res.redirect("/search");
@@ -300,7 +303,6 @@ app.post("/createFeedback", function(req, res){
     }
 
     else if(req.body.topic == "upgrading"){
-        console.log("Made it to upgrading");
         connection.query(q, ["admin2"], function(err, results){
             if(err) console.log("An error has occured inserting into feedback_view upgrading");
             return res.redirect("/search");
@@ -308,7 +310,6 @@ app.post("/createFeedback", function(req, res){
     }
 
     else if(req.body.topic == "general"){
-        console.log("Made it to general");
         connection.query(q, ["admin3"], function(err, results){
             if(err) console.log("An error has occured inserting into feedback_view general");
             return res.redirect("/search");
