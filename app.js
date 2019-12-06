@@ -117,11 +117,26 @@ app.get("/feedback", function(req, res){
 });
 
 app.get("/notifications", function(req, res){
-    var q = "SEELECT * FROM " +
-        "CONFIRMATION_SEND AS S, CONFIRMATION AS C " +
-        "WHERE S.Username = ? AND S.ConfirmationId = C.ConfirmationID";
-    connection.query(q, [req.session.userId], function(err, results) {
+    var today = new Date();
+    var format = String(today.getFullYear()) + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0');
+    var participants = [];
+    var user = req.session.userId;
+    var q = "SELECT A.Title, A.Description, A.StartTime, C.ConfirmationId, C.Description AS Note FROM " +
+        "CONFIRMATION_SEND AS S, CONFIRMATION AS C, ACTIVITY AS A " +
+        "WHERE S.Username = ? AND S.ConfirmationId = C.ConfirmationID " +
+        "AND A.ActivityId = C.ActivityId AND A.StartTime > ? ";
+    connection.query(q, [req.session.userId, format], function(err, results) {
         if(err) throw err;
+        q = "SELECT * FROM CONFIRMATION_SEND WHERE ConfirmationId = ?";
+        for(var i = 0; i < results.length; i++){
+            connection.query(q, [results[i].ConfirmationId], function(err, resultsPart) {
+                if(err) throw err;
+                participants = participants.concat(resultsPart);
+            });
+        }
+        setTimeout(function() {
+            res.render("notifications", {notifications: results, participants: participants, user: user});
+        }, 100);
     })
 });
 
@@ -169,6 +184,12 @@ app.get("/removeActivity/:id", function(req, res) {
     });
 });
 
+app.get("/blacklist/:id", function(req, res) {
+   var q = "INSERT INTO BLACKLIST VALUES(?, ?)";
+   connection.query(q, [req.session.userId, req.params.id], function(err, results) {
+   })
+});
+
 app.get("/confirmActivity/:id", function(req, res) {
     var description;
     var insertId;
@@ -180,12 +201,7 @@ app.get("/confirmActivity/:id", function(req, res) {
         "WHERE A.ActivityId = ? AND A.ActivityId = P.ActivityId";
     connection.query(q, [req.params.id], function(err, results) {
         if(err) throw err;
-        if(results.length > 0){
-            description = results[0].Title + " " + results[0].Description + " " + results[0].StartTime + " ";
-        }
-        for(var i = 0; i < results.length; i++){
-            description = description + results[i].Member + " ";
-        }
+        description = "Activity Reminder: "
         q = "INSERT INTO CONFIRMATION VALUES(null, ?, ?)";
         connection.query(q, [req.params.id, description], function(err, resultsCon) {
             if(err) throw err;

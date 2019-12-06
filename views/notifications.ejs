@@ -27,11 +27,31 @@
 </nav>
 
 <div class="col-xs-4" style="background-color:#EEEEEE; border-radius:10px; margin-left:15px">
-    <h3>Notifications</h3>
+    <h3>Notifications</h3><br>
     <ul>
-        <% for(var i = 0; i < feedback.length; i++){ %>
-        <form method="POST" action="/resolveFeedback/<%=feedback[i].FeedbackId%>">
-            <li><pre><%=feedback[i].Content%> - <%=feedback[i].ClientName%> <button type="submit" class="btn" id="interest">Resolve</button></pre></li>
+        <% for(var i = 0; i < notifications.length; i++){ %>
+        <form method="POST" action="/closeNotification/<%=notifications[i].ConfirmationId%>">
+            <li><h5><b><%=notifications[i].Note%></b></h5>
+                <div class="row">
+                    <p>Title: <%=notifications[i].Title%></p>
+                </div>
+                <div class="row">
+                    <p>Description: <%=notifications[i].Description%></p>
+                </div>
+                <div class="row">
+                    <p>Start Time: <%=notifications[i].StartTime%></p>
+                </div>
+                <div class="row">
+                    <b><p>Participants: </p></b>
+                </div>
+                <%for(var j = 0; j < participants.length; j++){%>
+                <%if(participants[j].ConfirmationId == notifications[i].ConfirmationId){%>
+                    <div class="row">
+                        <p><%=participants[j].Username%> <%if(user != participants[j].Username){%><a href="/blacklist/<%=participants[j].Username%>">Blacklist</a><%}%></p>
+                    </div>
+                <%}%>
+                <%}%>
+            </li>
         </form>
         <% } %>
     </ul>
